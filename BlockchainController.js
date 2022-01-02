@@ -123,10 +123,15 @@ class BlockchainController {
         this.app.get("/validateChain", async (req, res) => {
                 try {
                     let vc = await this.blockchain.validateChain();
-                    if(vc.is_valid){
-                        return res.status(200).json(vc);
+                    if(vc.length === 0){
+                        return res.status(200).json({
+                            "is_valid" : true
+                        });
                     } else {
-                        return res.status(500).send(vc);
+                        return res.status(409).send({
+                            "is_valid" : false,
+                            "error_blocks" : vc
+                        });
                     }
                 } catch (error) {
                     console.log(error);

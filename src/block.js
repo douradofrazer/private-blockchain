@@ -41,17 +41,9 @@ class Block {
             // Save in auxiliary variable the current block hash
             let currHash = self.hash;                       
             // Recalculate the hash of the Block
-            let copyOfBlock = JSON.parse(JSON.stringify(self));
-            copyOfBlock.hash = null;
-            let recalculatedHash = SHA256(JSON.stringify(copyOfBlock)).toString();
-            // Comparing if the hashes changed
-            if(currHash != recalculatedHash){
-            // Returning the Block is not valid
-                resolve(false);
-            }else {
-            // Returning the Block is valid
-                resolve(true);
-            }
+            let recalculatedHash = SHA256(JSON.stringify({...this, hash:null})).toString(); // cloning the block using the spread operator provided by javascript
+            // Comparing if the hashes changed and returning the result
+            resolve(currHash === recalculatedHash);
         });
     }
 
@@ -81,4 +73,4 @@ class Block {
 
 }
 
-module.exports.Block = Block;                    // Exposing the Block class as a module
+module.exports.Block = Block; // Exposing the Block class as a module

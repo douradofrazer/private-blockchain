@@ -72,7 +72,10 @@ class Blockchain {
             block.hash = SHA256(JSON.stringify(block)).toString();
             self.chain.push(block);
             self.height = self.chain.length - 1;
-            await self.validateChain();
+            let errorLog = await self.validateChain();
+            if(errorLog.length != 0) {
+                resolve('There is a problem with the chain');
+            }
             resolve(block);
         });
     }
@@ -148,7 +151,7 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-            let block = self.chain.filter(p => p.hash === hash)[0];
+            let block = self.chain.find(b => b.hash === hash);
             if(block){
                 resolve(block);
             } else {
@@ -180,7 +183,7 @@ class Blockchain {
      * Remember the star should be returned decoded.
      * @param {*} address 
      */
-    getStarsByWalletAddress (address) {
+    getStarsByWalletAddress(address) {
         let self = this;
         let data = [];
         return new Promise(async (resolve, reject) => {
@@ -212,15 +215,7 @@ class Blockchain {
 
                 block.validate().then(res => {
                     if(!res){
-                        let error = {
-                            "height" : block.height,
-                            "msg" : "block is invalid."
-                        }
-                        errorLog.push(error);
-                        reject({
-                            "is_valid" : false,
-                            "errorLog" : errorLog
-                        });
+                        errorLog.push(block);
                     }
                 });
 
@@ -231,22 +226,12 @@ class Blockchain {
                     let currBlock = self.chain[i];
                     let prevBlock = self.chain[i-1];
                     if(currBlock.previousBlockHash != prevBlock.hash){
-                        let error = {
-                            "height" : currBlock.height,
-                            "msg" : "block is invalid, does not match previous hash of block."
-                        }
-                        errorLog.push(error);
-                        reject({
-                            "is_valid" : false,
-                            "errorLog" : errorLog
-                        });
+                        errorLog.push(currBlock);
                     }
                 }
             }
 
-            resolve({
-                "is_valid" : true
-            });
+            resolve(errorLog);
         });
     }
 
